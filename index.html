@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Customer Feedback</title>
+
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --text: #1f2933;
+    --muted: #68737d;
+    --border: #d8dde1;
+    --focus: #2457d6;
+    --danger: #b42318;
+    --button: #eef1f3;
+    --button-active: #dde3e7;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding:
+      max(18px, env(safe-area-inset-top))
+      max(18px, env(safe-area-inset-right))
+      max(18px, env(safe-area-inset-bottom))
+      max(18px, env(safe-area-inset-left));
+  }
+
+  main {
+    width: min(900px, 100%);
+    background: var(--card);
+    border-radius: 28px;
+    padding: clamp(28px, 6vw, 64px);
+    box-shadow: 0 8px 35px rgba(0,0,0,.08);
+  }
+
+  .screen {
+    text-align: center;
+  }
+
+  h1 {
+    margin: 0 0 42px;
+    text-align: center;
+    font-size: clamp(34px, 6vw, 58px);
+    line-height: 1.1;
+    letter-spacing: -.02em;
+  }
+
+  .question {
+    margin-bottom: 38px;
+  }
+
+  /* ------------------------------
+     RATING SCREEN
+  ------------------------------ */
+
+  .rating-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(12px, 2.5vw, 24px);
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+
+  .rating {
+    min-height: 220px;
+    border: 2px solid var(--border);
+    border-radius: 22px;
+    background: var(--button);
+    color: var(--text);
+    cursor: pointer;
+
+    padding: 18px 12px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .rating:hover {
+    background: var(--button-active);
+  }
+
+  .rating:active {
+    transform: scale(.98);
+  }
+
+  .emoji {
+    font-size: clamp(60px, 10vw, 100px);
+    line-height: 1;
+  }
+
+  .rating-label {
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 700;
+  }
+
+  /* ------------------------------
+     POSTCODE
+  ------------------------------ */
+
+  .postcode-input {
+    width: 100%;
+    max-width: 480px;
+
+    border: 2px solid var(--border);
+    border-radius: 18px;
+
+    background: #fff;
+    color: var(--text);
+
+    padding: 20px;
+
+    font-size: clamp(38px, 7vw, 58px);
+    text-align: center;
+    letter-spacing: .15em;
+
+    outline: none;
+  }
+
+  .postcode-input:focus {
+    border-color: var(--focus);
+    box-shadow: 0 0 0 4px rgba(36,87,214,.12);
+  }
+
+  .postcode-hint {
+    color: var(--muted);
+    font-size: 20px;
+    margin-top: 16px;
+  }
+
+  .error {
+    min-height: 28px;
+    color: var(--danger);
+    font-size: 19px;
+    margin-top: 12px;
+    font-weight: 600;
+  }
+
+  /* ------------------------------
+     COMMENTS
+  ------------------------------ */
+
+  textarea {
+    width: 100%;
+    min-height: 200px;
+
+    border: 2px solid var(--border);
+    border-radius: 18px;
+
+    background: #fff;
+    color: var(--text);
+
+    padding: 18px;
+
+    font-size: clamp(22px, 3vw, 30px);
+
+    resize: none;
+    outline: none;
+  }
+
+  textarea:focus {
+    border-color: var(--focus);
+    box-shadow: 0 0 0 4px rgba(36,87,214,.12);
+  }
+
+  textarea::placeholder {
+    color: #9aa3aa;
+  }
+
+  /* ------------------------------
+     BUTTONS
+  ------------------------------ */
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+    min-height: 78px;
+
+    border-radius: 18px;
+
+    font-size: clamp(24px, 4vw, 32px);
+    font-weight: 800;
+
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .primary-button {
+    border: 0;
+    background: #1f2933;
+    color: white;
+    margin-top: 30px;
+  }
+
+  .primary-button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+  }
+
+  .primary-button:not(:disabled):active {
+    transform: scale(.99);
+  }
+
+  .secondary-button {
+    border: 2px solid var(--border);
+    background: white;
+    color: var(--text);
+    margin-top: 14px;
+  }
+
+  .secondary-button:active {
+    background: var(--button);
+  }
+
+  /* ------------------------------
+     THANK YOU
+  ------------------------------ */
+
+  .thanks {
+    padding: 45px 10px;
+  }
+
+  .thanks-icon {
+    font-size: clamp(65px, 12vw, 110px);
+    margin-bottom: 25px;
+  }
+
+  .thanks h2 {
+    font-size: clamp(42px, 7vw, 68px);
+    margin: 0 0 18px;
+  }
+
+  .thanks p {
+    font-size: clamp(22px, 3vw, 30px);
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .status-error h2 {
+    color: var(--danger);
+  }
+
+  @media (max-width: 650px) {
+    main {
+      border-radius: 20px;
+      padding: 24px;
+    }
+
+    .rating-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .rating {
+      min-height: 125px;
+      flex-direction: row;
+      gap: 22px;
+    }
+
+    .emoji {
+      font-size: 52px;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<main>
+
+  <!-- ==========================================
+       STEP 1: RATING
+  =========================================== -->
+
+  <section id="ratingScreen" class="screen">
+
+    <h1>How was your experience?</h1>
+
+    <div class="rating-grid">
+
+      <button class="rating" type="button" data-rating="1">
+        <span class="emoji">😞</span>
+        <span class="rating-label">Sad</span>
+      </button>
+
+      <button class="rating" type="button" data-rating="2">
+        <span class="emoji">😐</span>
+        <span class="rating-label">Meh</span>
+      </button>
+
+      <button class="rating" type="button" data-rating="3">
+        <span class="emoji">😊</span>
+        <span class="rating-label">Happy</span>
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================================
+       STEP 2: POSTCODE
+  =========================================== -->
+
+  <section id="postcodeScreen" class="screen" hidden>
+
+    <h1>What's your postcode?</h1>
+
+    <input
+      id="postcode"
+      class="postcode-input"
+      type="text"
+      inputmode="numeric"
+      pattern="[0-9]{4}"
+      maxlength="4"
+      autocomplete="postal-code"
+      placeholder="0000"
+      aria-label="Four digit postcode"
+    >
+
+    <div class="postcode-hint">
+      Please enter your 4-digit NZ postcode
+    </div>
+
+    <div id="postcodeError" class="error"></div>
+
+    <button
+      id="postcodeNext"
+      class="primary-button"
+      type="button"
+      disabled
+    >
+      CONTINUE
+    </button>
+
+  </section>
+
+
+  <!-- ==========================================
+       STEP 3: COMMENTS
+  =========================================== -->
+
+  <section id="commentScreen" class="screen" hidden>
+
+    <h1>Anything you'd like to tell us?</h1>
+
+    <textarea
+      id="comment"
+      maxlength="2000"
+      placeholder="Optional"
+      aria-label="Optional comments"
+    ></textarea>
+
+    <button
+      id="submitButton"
+      class="primary-button"
+      type="button"
+    >
+      SUBMIT
+    </button>
+
+    <button
+      id="skipButton"
+      class="secondary-button"
+      type="button"
+    >
+      NO COMMENT
+    </button>
+
+  </section>
+
+
+  <!-- ==========================================
+       STEP 4: THANK YOU
+  =========================================== -->
+
+  <section id="thanksScreen" class="screen thanks" hidden>
+
+    <div class="thanks-icon">✓</div>
+
+    <h2>Thank you!</h2>
+
+    <p>Your feedback has been submitted.</p>
+
+  </section>
+
+
+  <!-- ==========================================
+       ERROR SCREEN
+  =========================================== -->
+
+  <section id="errorScreen" class="screen thanks status-error" hidden>
+
+    <div class="thanks-icon">!</div>
+
+    <h2>Sorry</h2>
+
+    <p>We couldn't submit your feedback.</p>
+
+    <button
+      id="retryButton"
+      class="primary-button"
+      type="button"
+    >
+      TRY AGAIN
+    </button>
+
+  </section>
+
+</main>
+
+
+<script>
+
+/* ============================================================
+   CONFIGURATION
+============================================================ */
+
+const GOOGLE_SCRIPT_URL =
+  "PASTE_GOOGLE_APPS_SCRIPT_URL_HERE";
+
+
+/*
+ * Set this to true while testing the interface.
+ *
+ * TRUE:
+ *   Nothing is sent to Google.
+ *
+ * FALSE:
+ *   Feedback is submitted to Google Apps Script.
+ */
+
+const LOCAL_TEST_MODE = true;
+
+
+/*
+ * How long the thank-you screen stays visible.
+ */
+
+const THANK_YOU_DELAY = 2500;
+
+
+/* ============================================================
+   STATE
+============================================================ */
+
+let selectedRating = null;
+let selectedPostcode = "";
+
+let thankYouTimer = null;
+
+
+/* ============================================================
+   SCREENS
+============================================================ */
+
+const ratingScreen =
+  document.getElementById("ratingScreen");
+
+const postcodeScreen =
+  document.getElementById("postcodeScreen");
+
+const commentScreen =
+  document.getElementById("commentScreen");
+
+const thanksScreen =
+  document.getElementById("thanksScreen");
+
+const errorScreen =
+  document.getElementById("errorScreen");
+
+
+/* ============================================================
+   INPUTS
+============================================================ */
+
+const postcodeInput =
+  document.getElementById("postcode");
+
+const postcodeError =
+  document.getElementById("postcodeError");
+
+const postcodeNext =
+  document.getElementById("postcodeNext");
+
+const commentInput =
+  document.getElementById("comment");
+
+const submitButton =
+  document.getElementById("submitButton");
+
+const skipButton =
+  document.getElementById("skipButton");
+
+const retryButton =
+  document.getElementById("retryButton");
+
+
+const ratingButtons =
+  [...document.querySelectorAll(".rating")];
+
+
+/* ============================================================
+   SCREEN CONTROL
+============================================================ */
+
+function showScreen(screen) {
+
+  [
+    ratingScreen,
+    postcodeScreen,
+    commentScreen,
+    thanksScreen,
+    errorScreen
+  ].forEach(element => {
+    element.hidden = true;
+  });
+
+  screen.hidden = false;
+
+  window.scrollTo(0, 0);
+}
+
+
+/* ============================================================
+   STEP 1
+   RATING
+============================================================ */
+
+ratingButtons.forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    selectedRating =
+      Number(button.dataset.rating);
+
+    /*
+     * Immediately move to postcode.
+     */
+
+    showScreen(postcodeScreen);
+
+    postcodeInput.focus();
+
+  });
+
+});
+
+
+/* ============================================================
+   STEP 2
+   POSTCODE
+============================================================ */
+
+postcodeInput.addEventListener("input", () => {
+
+  /*
+   * Only allow digits.
+   */
+
+  postcodeInput.value =
+    postcodeInput.value
+      .replace(/\D/g, "")
+      .slice(0, 4);
+
+  const valid =
+    /^\d{4}$/.test(postcodeInput.value);
+
+  postcodeNext.disabled = !valid;
+
+  if (valid) {
+    postcodeError.textContent = "";
+  }
+
+});
+
+
+postcodeNext.addEventListener("click", () => {
+
+  if (!/^\d{4}$/.test(postcodeInput.value)) {
+
+    postcodeError.textContent =
+      "Please enter a valid 4-digit postcode.";
+
+    return;
+  }
+
+  selectedPostcode =
+    postcodeInput.value;
+
+  showScreen(commentScreen);
+
+});
+
+
+/* ============================================================
+   STEP 3
+   COMMENTS
+============================================================ */
+
+submitButton.addEventListener("click", () => {
+
+  submitFeedback(
+    commentInput.value.trim()
+  );
+
+});
+
+
+skipButton.addEventListener("click", () => {
+
+  submitFeedback("");
+
+});
+
+
+/* ============================================================
+   SUBMIT
+============================================================ */
+
+async function submitFeedback(comment) {
+
+  submitButton.disabled = true;
+  skipButton.disabled = true;
+
+  const payload = {
+
+    rating: selectedRating,
+
+    postcode: selectedPostcode,
+
+    comment: comment
+
+  };
+
+
+  try {
+
+    /*
+     * Local testing mode.
+     */
+
+    if (LOCAL_TEST_MODE) {
+
+      console.log(
+        "LOCAL TEST SUBMISSION:",
+        payload
+      );
+
+      await new Promise(resolve =>
+        setTimeout(resolve, 500)
+      );
+
+    }
+
+    /*
+     * Real Google submission.
+     */
+
+    else {
+
+      if (
+        !GOOGLE_SCRIPT_URL ||
+        GOOGLE_SCRIPT_URL.includes(
+          "PASTE_GOOGLE"
+        )
+      ) {
+
+        throw new Error(
+          "Google Apps Script URL is not configured."
+        );
+
+      }
+
+      await postToGoogle(payload);
+
+    }
+
+
+    /*
+     * Submission succeeded.
+     */
+
+    showScreen(thanksScreen);
+
+    thankYouTimer =
+      setTimeout(
+        resetKiosk,
+        THANK_YOU_DELAY
+      );
+
+  }
+
+
+  catch (error) {
+
+    console.error(error);
+
+    showScreen(errorScreen);
+
+  }
+
+
+  finally {
+
+    submitButton.disabled = false;
+    skipButton.disabled = false;
+
+  }
+
+}
+
+
+/* ============================================================
+   GOOGLE APPS SCRIPT SUBMISSION
+============================================================ */
+
+function postToGoogle(payload) {
+
+  return new Promise((resolve, reject) => {
+
+    const iframeName =
+      "feedbackSubmit_" + Date.now();
+
+
+    /*
+     * Hidden iframe.
+     *
+     * This allows the local file to submit
+     * to Google without requiring CORS-enabled
+     * fetch requests.
+     */
+
+    const iframe =
+      document.createElement("iframe");
+
+    iframe.name = iframeName;
+
+    iframe.style.display = "none";
+
+    document.body.appendChild(iframe);
+
+
+    /*
+     * Create normal HTML form.
+     */
+
+    const form =
+      document.createElement("form");
+
+    form.method = "POST";
+
+    form.action =
+      GOOGLE_SCRIPT_URL;
+
+    form.target =
+      iframeName;
+
+    form.style.display = "none";
+
+
+    /*
+     * Add fields.
+     */
+
+    const fields = {
+
+      rating:
+        String(payload.rating),
+
+      postcode:
+        String(payload.postcode),
+
+      comment:
+        String(payload.comment)
+
+    };
+
+
+    Object.entries(fields).forEach(
+      ([name, value]) => {
+
+        const input =
+          document.createElement("input");
+
+        input.type = "hidden";
+
+        input.name = name;
+
+        input.value = value;
+
+        form.appendChild(input);
+
+      }
+    );
+
+
+    document.body.appendChild(form);
+
+
+    let completed = false;
+
+
+    function cleanup() {
+
+      setTimeout(() => {
+
+        form.remove();
+        iframe.remove();
+
+      }, 1000);
+
+    }
+
+
+    /*
+     * Google responded.
+     */
+
+    iframe.addEventListener(
+      "load",
+      () => {
+
+        if (completed) return;
+
+        completed = true;
+
+        cleanup();
+
+        resolve();
+
+      },
+      { once: true }
+    );
+
+
+    /*
+     * Prevent the kiosk getting
+     * stuck forever if Google fails.
+     */
+
+    setTimeout(() => {
+
+      if (completed) return;
+
+      completed = true;
+
+      cleanup();
+
+      reject(
+        new Error(
+          "Google submission timed out."
+        )
+      );
+
+    }, 15000);
+
+
+    form.submit();
+
+  });
+
+}
+
+
+/* ============================================================
+   ERROR RETRY
+============================================================ */
+
+retryButton.addEventListener(
+  "click",
+  () => {
+
+    /*
+     * Return to the comments page.
+     *
+     * The rating and postcode are still
+     * retained so the customer doesn't
+     * have to start again.
+     */
+
+    showScreen(commentScreen);
+
+  }
+);
+
+
+/* ============================================================
+   RESET
+============================================================ */
+
+function resetKiosk() {
+
+  clearTimeout(thankYouTimer);
+
+  selectedRating = null;
+  selectedPostcode = "";
+
+  postcodeInput.value = "";
+
+  postcodeError.textContent = "";
+
+  commentInput.value = "";
+
+  postcodeNext.disabled = true;
+
+  submitButton.disabled = false;
+
+  skipButton.disabled = false;
+
+
+  /*
+   * Start again from the rating screen.
+   */
+
+  showScreen(ratingScreen);
+
+}
+
+
+/* ============================================================
+   INITIAL STATE
+============================================================ */
+
+showScreen(ratingScreen);
+
+</script>
+
+</body>
+</html>
+

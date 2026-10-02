@@ -1,0 +1,152 @@
+# Customer Feedback Kiosk
+
+This package gives you:
+
+MacBook/local test:
+index.html -> local test mode -> no network
+
+Real deployment:
+iPad/local index.html -> HTTPS form POST -> Google Apps Script -> Google Sheet
+
+## 1. Local MacBook testing
+
+1. Open `index.html` in Safari or Chrome.
+2. It starts in `LOCAL_TEST_MODE = true`.
+3. Test:
+   - Sad / Meh / Happy selection
+   - Optional comment
+   - Postcode validation
+   - `0123` remains `0123`
+   - Submit button only enables after a rating and 4-digit postcode
+   - Thank-you screen
+   - Automatic reset
+   - Retry screen is available from the failure state
+4. No information is sent anywhere in this mode.
+
+For a quick terminal-based local server, from this folder run:
+
+    python3 -m http.server 8000
+
+Then open:
+
+    http://localhost:8000/
+
+This is optional; opening `index.html` directly is also supported.
+
+## 2. Create the Google Sheet
+
+1. Sign into the Google account that should own the feedback data.
+2. Create a new Google Sheet, for example:
+   `Shop Customer Feedback`
+3. Open:
+   Extensions -> Apps Script
+4. Delete the starter code.
+5. Paste all of `Code.gs` from this package.
+6. Save the project.
+
+The script creates a sheet named `Feedback` automatically with:
+
+Timestamp | Rating | Comment | Postcode
+
+## 3. Deploy Apps Script
+
+In Apps Script:
+
+1. Click Deploy -> New deployment.
+2. Choose type: Web app.
+3. Execute as: Me (your Google account).
+4. Who has access: Anyone.
+5. Deploy.
+6. Approve Google's authorization prompts if shown.
+7. Copy the Web app URL ending in `/exec`.
+
+Important:
+- Customers do not sign into Google.
+- The script runs under the owner account selected in "Execute as".
+- "Anyone" is necessary for a public kiosk that cannot require Google login.
+- Treat the Web app URL as an endpoint that accepts public submissions. Do not put private information into it.
+
+## 4. Connect the HTML to Google
+
+Open `index.html` in a text editor.
+
+Find:
+
+    const GOOGLE_SCRIPT_URL = "PASTE_GOOGLE_APPS_SCRIPT_URL_HERE";
+
+Replace the placeholder with your `/exec` URL.
+
+Then change:
+
+    const LOCAL_TEST_MODE = true;
+
+to:
+
+    const LOCAL_TEST_MODE = false;
+
+Do not add `/dev`; use the deployed `/exec` URL.
+
+## 5. Test the real Google connection on your MacBook
+
+Before moving to the iPad:
+
+1. Save the edited `index.html`.
+2. Open it locally in Safari.
+3. Submit a test such as:
+   Rating: Happy
+   Comment: MacBook test
+   Postcode: 0123
+4. Check the Google Sheet.
+5. Confirm:
+   - a new row appeared
+   - the rating is 3
+   - the comment is correct
+   - the postcode is displayed as 0123
+   - the timestamp came from Google Apps Script
+
+The local page uses a hidden HTML form targeting a hidden iframe rather than a JSON fetch. This is intentional: it avoids depending on CORS behaviour for a `file://` page.
+
+## 6. If the real submission does not work
+
+First test the Apps Script endpoint itself by opening the `/exec` URL in a browser. It should display:
+
+Customer Feedback endpoint is running.
+
+Then check:
+- Apps Script deployment is still active.
+- "Who has access" is Anyone.
+- The HTML uses the `/exec` URL, not `/dev`.
+- `LOCAL_TEST_MODE` is false.
+- The Apps Script is attached to the correct Sheet.
+- The Apps Script execution log does not show errors.
+
+If you change Apps Script code after deployment, create a new deployment/version or update the existing deployment as appropriate, then continue using the `/exec` URL.
+
+## 7. Move the HTML to the iPad
+
+The HTML file is self-contained.
+
+Recommended options:
+- AirDrop the `index.html` file to the iPad.
+- Store it in the Files app.
+- Open it in Safari if the iPad/Safari version permits local HTML files to be opened directly.
+- If Safari's local-file handling on your particular iPad prevents the desired workflow, use Apple's Shortcuts/Files workflow or another local-file mechanism rather than adding a public web server. The Google endpoint remains the only external service.
+
+## 8. iPad kiosk use
+
+For a simple kiosk:
+1. Open the local HTML in Safari.
+2. Enter full screen where available.
+3. Use Guided Access (Settings -> Accessibility -> Guided Access) to prevent customers leaving the app.
+4. Start Guided Access while the kiosk page is displayed.
+5. Test the entire submission cycle repeatedly before putting the iPad in public use.
+
+For the most locked-down setup, configure Guided Access so the Home button/gesture and other exits are restricted.
+
+## Security/privacy notes
+
+- Anyone who knows the web-app URL can attempt to POST data to the endpoint. The script validates rating and postcode, but the endpoint is intentionally public.
+- Do not collect names, phone numbers, email addresses, or other sensitive information in this simple kiosk unless you redesign the privacy/security model.
+- Google Sheet sharing should remain restricted to the people who need access.
+- The kiosk itself contains no analytics, advertising, third-party libraries, external fonts, or tracking.
+- The timestamp is generated by Apps Script/Google rather than the kiosk device.
